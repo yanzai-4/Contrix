@@ -1,0 +1,5 @@
+# Workspace layout
+# Keep this list explicit for stable package discovery.
+packages:
+  - apps/*
+  - packages/*

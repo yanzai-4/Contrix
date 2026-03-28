@@ -1,0 +1,14 @@
+{
+  "name": "@contrix/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tauri dev --config src-tauri/tauri.conf.json",
+    "build": "tauri build --config src-tauri/tauri.conf.json",
+    "typecheck": "node -e \"console.log('desktop: no TypeScript sources to typecheck')\"",
+    "lint": "node -e \"console.log('desktop: no lint target')\""
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.2.2"
+  }
+}

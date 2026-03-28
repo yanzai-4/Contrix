@@ -1,0 +1,40 @@
+{
+  "name": "contrix",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Build reliable local Model APIs from LLMs with a contract-first graphical interface, schema-enforced outputs, prompt compilation, validation and repair, model switching, runtime testing, and local deployment.",
+  "packageManager": "pnpm@10.18.0",
+  "engines": {
+    "node": ">=20.19 <25"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild"
+    ]
+  },
+  "scripts": {
+    "build:shared": "pnpm -r --filter ./packages/* build",
+    "start:web": "pnpm --filter @contrix/web preview",
+    "start:server": "pnpm --filter @contrix/server start",
+    "start": "node ./scripts/run-local.mjs start",
+    "dev:web": "pnpm build:shared && pnpm --filter @contrix/web dev",
+    "dev:server": "pnpm build:shared && pnpm --filter @contrix/server dev",
+    "dev:desktop": "pnpm build:shared && concurrently -n web,server,desktop -c green,cyan,yellow \"pnpm --filter @contrix/web dev\" \"pnpm --filter @contrix/server dev\" \"pnpm --filter @contrix/desktop dev\"",
+    "dev": "pnpm build:shared && node ./scripts/run-local.mjs dev",
+    "build": "pnpm -r --filter ./packages/* --filter ./apps/server --filter ./apps/web build",
+    "build:desktop": "pnpm --filter @contrix/desktop build",
+    "typecheck": "pnpm build:shared && pnpm -r typecheck",
+    "lint": "pnpm -r lint"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.18.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3"
+  }
+}

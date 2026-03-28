@@ -1,0 +1,45 @@
+name: Node Matrix CI
+
+on:
+  # Temporarily disable CI on every push.
+  # Restore by re-adding the push trigger below.
+  # push:
+  #   branches:
+  #     - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-smoke:
+    name: Build (${{ matrix.os }} / Node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        node: ['20.19.0', '22.x', '24.x']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspaces
+        run: pnpm build
+
+      - name: Smoke check web/server outputs
+        run: |
+          node -e "const fs=require('node:fs'); const required=['packages/prompt-compiler/dist/index.js','apps/server/dist/index.js','apps/web/dist/index.html']; const missing=required.filter((file)=>!fs.existsSync(file)); if (missing.length) { console.error('Missing build artifacts:\\n' + missing.join('\\n')); process.exit(1); } console.log('Smoke check passed.');"

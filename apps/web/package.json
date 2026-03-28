@@ -1,0 +1,29 @@
+{
+  "name": "@contrix/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host localhost --port 4400",
+    "build": "tsc -p tsconfig.app.json && vite build",
+    "preview": "vite preview --host localhost --port 4400 --strictPort",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "lint": "eslint src --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@contrix/runtime-core": "workspace:*",
+    "@contrix/spec-core": "workspace:*",
+    "@tanstack/react-table": "^8.21.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^2.15.4",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.4.1",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0"
+  }
+}

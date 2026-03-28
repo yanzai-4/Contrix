@@ -1,0 +1,29 @@
+{
+  "name": "@contrix/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -b tsconfig.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@contrix/prompt-compiler": "workspace:*",
+    "@contrix/runtime-core": "workspace:*",
+    "@contrix/spec-core": "workspace:*",
+    "@fastify/cors": "^10.1.0",
+    "ajv": "^8.17.1",
+    "better-sqlite3": "^12.1.1",
+    "fastify": "^5.6.1",
+    "fastify-plugin": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.13.4",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  }
+}

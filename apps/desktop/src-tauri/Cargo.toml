@@ -1,0 +1,18 @@
+[package]
+name = "contrix-desktop"
+version = "0.1.0"
+description = "Contrix desktop shell"
+authors = ["Contrix Team"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.77.2"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]

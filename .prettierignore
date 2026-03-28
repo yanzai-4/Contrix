@@ -1,0 +1,11 @@
+# Root output folders
+# Keep ignores aligned with formatter/lint behavior across workspaces.
+dist
+build
+node_modules
+
+# lockfile intentionally excluded from formatting
+pnpm-lock.yaml
+
+# Desktop (Tauri) build output
+apps/desktop/src-tauri/target

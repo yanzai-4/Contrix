@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  // Root references only; shared compiler defaults live in tsconfig.base.json.
+  "files": [],
+  "references": [
+    { "path": "./packages/spec-core" },
+    { "path": "./packages/prompt-compiler" },
+    { "path": "./packages/runtime-core" },
+    { "path": "./apps/server" },
+    { "path": "./apps/web/tsconfig.app.json" }
+  ]
+}

@@ -1,0 +1,8 @@
+# Root-level generated artifacts
+# Keep this file intentionally small and explicit.
+dist
+build
+node_modules
+
+# Desktop (Tauri) build output
+apps/desktop/src-tauri/target

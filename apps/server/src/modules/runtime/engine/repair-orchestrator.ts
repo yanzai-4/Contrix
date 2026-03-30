@@ -7,6 +7,7 @@ import type {
 } from '@contrix/spec-core';
 import type {
   AdapterInvokeResult,
+  DeterministicRepairResult,
   NormalizedProviderResult,
   RetryAttemptMeta,
   RuntimeErrorStage,
@@ -155,6 +156,39 @@ function toOutputSource(providerCallIndex: number, fromDeterministicRepair: bool
   return fromDeterministicRepair ? 'repair_retry_deterministic_repair' : 'repair_retry_valid';
 }
 
+function buildAdditionalPropertiesRepairResult(input: {
+  removedAdditionalPropertyPaths: string[];
+  repairedCandidate: unknown;
+  validation: ValidationResult;
+  extractedJsonText: string | null;
+  rawText: string;
+}): DeterministicRepairResult | null {
+  const { removedAdditionalPropertyPaths } = input;
+  if (removedAdditionalPropertyPaths.length === 0) {
+    return null;
+  }
+
+  const previewPaths = removedAdditionalPropertyPaths.slice(0, 3).join(', ');
+  const hiddenPathCount = removedAdditionalPropertyPaths.length - Math.min(3, removedAdditionalPropertyPaths.length);
+  const hiddenSuffix = hiddenPathCount > 0 ? ` (+${hiddenPathCount} more)` : '';
+  const noun = removedAdditionalPropertyPaths.length === 1 ? 'property' : 'properties';
+
+  return {
+    changed: true,
+    parseSucceeded: true,
+    repairedText: input.extractedJsonText ?? input.rawText,
+    candidate: input.repairedCandidate,
+    actions: [
+      {
+        type: 'remove_additional_properties',
+        message: `Removed ${removedAdditionalPropertyPaths.length} additional ${noun}: ${previewPaths}${hiddenSuffix}.`
+      }
+    ],
+    errors: [],
+    validationResult: input.validation
+  };
+}
+
 export class RuntimeValidationRepairOrchestrator {
   private readonly validationEngine = new ValidationEngine();
 
@@ -187,17 +221,30 @@ export class RuntimeValidationRepairOrchestrator {
 
         const extraction = extractJsonCandidate(rawText);
         const parsed = parseExtractedCandidate(extraction.extractedText);
-        const validation = parsed.candidate
+        const validationOutput = parsed.candidate
           ? this.validationEngine.validateOutput({
               outputSchema: input.context.outputSchema,
               candidate: parsed.candidate,
               validationPolicy: input.context.validationPolicy
-            }).result
-          : buildParseFailureValidation(parsed.parseError ?? 'Extracted JSON parsing failed.');
+            })
+          : {
+              result: buildParseFailureValidation(parsed.parseError ?? 'Extracted JSON parsing failed.'),
+              normalizationMeta: {
+                removedAdditionalPropertyPaths: []
+              }
+            };
+        const validation = validationOutput.result;
+        const additionalPropertiesRepair = buildAdditionalPropertiesRepairResult({
+          removedAdditionalPropertyPaths: validationOutput.normalizationMeta.removedAdditionalPropertyPaths,
+          repairedCandidate: validation.normalizedCandidate ?? parsed.candidate,
+          validation,
+          extractedJsonText: extraction.extractedText,
+          rawText
+        });
 
         if (validation.success) {
           const normalizedCandidate = validation.normalizedCandidate ?? parsed.candidate;
-          const outputSource = toOutputSource(providerCallIndex, false);
+          const outputSource = toOutputSource(providerCallIndex, Boolean(additionalPropertiesRepair));
           const attempt: RetryAttemptMeta = {
             attemptIndex: attempts.length + 1,
             providerCallIndex,
@@ -208,9 +255,15 @@ export class RuntimeValidationRepairOrchestrator {
             rawProviderText: rawText,
             jsonExtraction: extraction,
             validationResult: validation,
-            deterministicRepairResult: null,
+            deterministicRepairResult: additionalPropertiesRepair,
             repairPromptUsed: currentRepairPrompt,
-            successStage: providerCallIndex > 1 ? 'repair_retry_validated' : 'validated',
+            successStage: additionalPropertiesRepair
+              ? providerCallIndex > 1
+                ? 'repair_retry_repaired'
+                : 'deterministic_repaired'
+              : providerCallIndex > 1
+                ? 'repair_retry_validated'
+                : 'validated',
             errorStage: null,
             retryTriggered: false,
             timeoutTriggered: false,

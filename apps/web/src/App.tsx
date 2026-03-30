@@ -184,7 +184,7 @@ function App() {
       </section>
 
       <footer className="app-footnote" aria-label="Application footnote">
-        Contrix · v1.0.0 · Ryan Yan
+        Contrix · V1.1.0 · Ryan Yan
       </footer>
     </main>
   );

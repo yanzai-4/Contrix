@@ -320,7 +320,10 @@ export function normalizeOutputSchema(value: unknown): SchemaObjectNode {
     throw new ModuleError('INVALID_OUTPUT_SCHEMA', 400, 'outputSchema root type must be object.');
   }
 
-  return node;
+  return {
+    ...node,
+    allowAdditionalProperties: true
+  };
 }
 
 export function normalizeInputSchemaForMode(

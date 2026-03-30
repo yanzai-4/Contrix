@@ -216,6 +216,7 @@ export function EndpointPreviewPanel({ endpoint, initialTab = 'prompt' }: Endpoi
           >
             Spec
           </button>
+          <span className="preview-tab-divider" aria-hidden="true" />
           <button
             type="button"
             role="tab"
@@ -225,6 +226,7 @@ export function EndpointPreviewPanel({ endpoint, initialTab = 'prompt' }: Endpoi
           >
             Prompt
           </button>
+          <span className="preview-tab-divider" aria-hidden="true" />
           <button
             type="button"
             role="tab"

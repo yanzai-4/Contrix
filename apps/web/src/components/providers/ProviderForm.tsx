@@ -388,6 +388,7 @@ export function ProviderForm({ onSuccess, onRequestClose }: ProviderFormProps) {
           <label>
             {t('Headers JSON')}
             <textarea
+              className="code-editor-textarea"
               rows={4}
               value={formState.headersJson}
               onChange={(event) => updateField('headersJson', event.target.value)}

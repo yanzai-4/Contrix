@@ -20,9 +20,9 @@ export function ProjectList({ onOpenProjectDetail, onOpenCreateModal }: ProjectL
   const { t } = useI18n();
 
   return (
-    <section className="panel">
+    <section className="panel project-list-panel">
       <div className="panel-header-row">
-        <h2>{t('Projects')}</h2>
+        <h2>{t('Project List')}</h2>
         <button type="button" onClick={onOpenCreateModal}>
           {t('Add Project')}
         </button>
@@ -38,7 +38,7 @@ export function ProjectList({ onOpenProjectDetail, onOpenCreateModal }: ProjectL
         </div>
       ) : (
         <div className="table-wrap">
-          <table className="project-table">
+          <table className="project-table list-themed-table">
             <thead>
               <tr>
                 <th>{t('Name')}</th>

@@ -1125,6 +1125,21 @@ body {
   font-weight: 500 !important;
 }
 
+input[type='checkbox'] {
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  border-radius: 4px;
+  box-shadow: none;
+  background: initial;
+  appearance: auto;
+  flex: 0 0 auto;
+}
+
 .provider-structured-output-toggle {
   margin-top: 10px;
   margin-bottom: 10px;
@@ -1488,7 +1503,7 @@ button.danger {
   box-shadow: none;
   z-index: 6;
   transition: none;
-  transform: translate(26%, -26%);
+  transform: translate(50%, -50%);
 }
 
 .modal-close-icon::before {
@@ -1500,10 +1515,10 @@ button.danger {
 
 .modal-close-icon:hover,
 .modal-close-icon:focus-visible {
-  transform: translate(26%, -26%);
+  transform: translate(50%, -50%);
   filter: none;
   box-shadow: none;
-  background: #b42318;
+  background: #991b1b;
 }
 
 .modal-scroll-body {
@@ -1656,6 +1671,10 @@ button.danger {
 
 .row-menu-trigger {
   cursor: pointer;
+}
+
+.endpoint-more-label {
+  font-weight: 700;
 }
 
 .row-menu-caret {

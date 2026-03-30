@@ -413,7 +413,7 @@ export function CallLogsPage() {
     <section className="logs-page">
       <section className="panel">
         <div className="dashboard-header-row">
-          <h2>Logs / Observability</h2>
+          <h2>Logs</h2>
           <div className="row-actions">
             <button
               type="button"
@@ -549,7 +549,7 @@ export function CallLogsPage() {
         {error ? <p className="error-line">Error: {error}</p> : null}
 
         <div className="table-wrap">
-          <table className="project-table">
+          <table className="project-table list-themed-table">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>

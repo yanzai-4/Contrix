@@ -63,7 +63,9 @@ function randomSigned(minAbs: number, maxAbs: number): number {
   return Math.random() < 0.5 ? -magnitude : magnitude;
 }
 
-function buildAmbientBlobStyle(): CSSProperties {
+type AmbientBlobTone = 'teal' | 'blue';
+
+function buildAmbientBlobStyle(tone: AmbientBlobTone = 'teal'): CSSProperties {
   const size = randomBetween(320, 560);
   const top = randomBetween(-14, 70);
   const right = randomBetween(-14, 56);
@@ -73,9 +75,9 @@ function buildAmbientBlobStyle(): CSSProperties {
   const originX = randomBetween(30, 46);
   const originY = randomBetween(30, 46);
 
-  const hue = randomBetween(146, 168);
-  const saturation = randomBetween(58, 78);
-  const light = randomBetween(42, 56);
+  const hue = tone === 'blue' ? randomBetween(208, 224) : randomBetween(146, 168);
+  const saturation = tone === 'blue' ? randomBetween(62, 82) : randomBetween(58, 78);
+  const light = tone === 'blue' ? randomBetween(44, 58) : randomBetween(42, 56);
   const strongAlpha = randomBetween(0.18, 0.3);
   const midAlpha = randomBetween(0.08, 0.16);
   const softAlpha = randomBetween(0.03, 0.08);
@@ -326,7 +328,10 @@ export function OverviewPage() {
 
   const [distributionTab, setDistributionTab] = useState<DistributionTab>('providers');
   const [modelMetric, setModelMetric] = useState<ModelMetric>('calls');
-  const ambientBlobStyles = useMemo(() => Array.from({ length: 5 }, () => buildAmbientBlobStyle()), []);
+  const ambientBlobStyles = useMemo(
+    () => Array.from({ length: 5 }, (_, index) => buildAmbientBlobStyle(index < 2 ? 'blue' : 'teal')),
+    []
+  );
 
   useEffect(() => {
     void refresh();
@@ -1195,8 +1200,10 @@ export function OverviewPage() {
           )}
         </article>
 
-        <article className="panel">
-          <h3>{failureHotspots.length > 0 ? 'Failure Hotspots' : 'Reliability Snapshot'}</h3>
+        <article className="panel overview-reliability-panel">
+          <div className="panel-header-row">
+            <h3>{failureHotspots.length > 0 ? 'Failure Hotspots' : 'Reliability Snapshot'}</h3>
+          </div>
           {failureHotspots.length === 0 ? (
             <div className="overview-positive-empty">
               <p>No failure-prone endpoints detected in this range.</p>
@@ -1268,7 +1275,7 @@ export function OverviewPage() {
           </button>
         </div>
         <div className="table-wrap">
-          <table className="project-table overview-compact-table">
+          <table className="project-table overview-compact-table list-themed-table">
             <thead>
               <tr>
                 <th>Time</th>

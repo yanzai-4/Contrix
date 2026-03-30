@@ -21,6 +21,9 @@ interface ValidationEngineInput {
 interface ValidationEngineOutput {
   result: ValidationResult;
   normalizedSchema: JsonSchemaObject;
+  normalizationMeta: {
+    removedAdditionalPropertyPaths: string[];
+  };
 }
 
 function deepClone<T>(value: T): T {
@@ -41,6 +44,70 @@ function includesType(typeValue: JsonSchemaObject['type'], target: string): bool
   }
 
   return false;
+}
+
+function escapeJsonPointerSegment(segment: string): string {
+  return segment.replace(/~/g, '~0').replace(/\//g, '~1');
+}
+
+function joinJsonPointerPath(basePath: string, segment: string): string {
+  if (basePath === '/') {
+    return `/${escapeJsonPointerSegment(segment)}`;
+  }
+
+  return `${basePath}/${escapeJsonPointerSegment(segment)}`;
+}
+
+interface StripAdditionalPropertiesResult {
+  value: unknown;
+  removedAdditionalPropertyPaths: string[];
+}
+
+function stripAdditionalPropertiesBySchema(
+  candidate: unknown,
+  schema: JsonSchemaObject,
+  path = '/'
+): StripAdditionalPropertiesResult {
+  if (includesType(schema.type, 'object') && isObject(candidate)) {
+    const properties = isObject(schema.properties) ? schema.properties : {};
+    const next: Record<string, unknown> = {};
+    const removedAdditionalPropertyPaths: string[] = [];
+
+    for (const [key, value] of Object.entries(candidate)) {
+      const propertySchema = properties[key];
+
+      if (!propertySchema) {
+        removedAdditionalPropertyPaths.push(joinJsonPointerPath(path, key));
+        continue;
+      }
+
+      const normalized = stripAdditionalPropertiesBySchema(value, propertySchema, joinJsonPointerPath(path, key));
+      next[key] = normalized.value;
+      removedAdditionalPropertyPaths.push(...normalized.removedAdditionalPropertyPaths);
+    }
+
+    return {
+      value: next,
+      removedAdditionalPropertyPaths
+    };
+  }
+
+  if (includesType(schema.type, 'array') && Array.isArray(candidate) && schema.items) {
+    const itemSchema = schema.items as JsonSchemaObject;
+    const normalizedItems = candidate.map((item, index) =>
+      stripAdditionalPropertiesBySchema(item, itemSchema, joinJsonPointerPath(path, String(index)))
+    );
+
+    return {
+      value: normalizedItems.map((item) => item.value),
+      removedAdditionalPropertyPaths: normalizedItems.flatMap((item) => item.removedAdditionalPropertyPaths)
+    };
+  }
+
+  return {
+    value: candidate,
+    removedAdditionalPropertyPaths: []
+  };
 }
 
 function normalizeSchemaByPolicy(
@@ -150,7 +217,15 @@ function toValidationIssue(candidate: unknown, error: ErrorObject): ValidationIs
 export class ValidationEngine {
   validateOutput(input: ValidationEngineInput): ValidationEngineOutput {
     const normalizedSchema = normalizeSchemaByPolicy(input.outputSchema, input.validationPolicy);
-    const candidate = deepClone(input.candidate);
+    let candidate = deepClone(input.candidate);
+    const removedAdditionalPropertyPaths: string[] = [];
+
+    if (input.validationPolicy.allowExtraFields) {
+      const normalizedCandidate = stripAdditionalPropertiesBySchema(candidate, input.outputSchema);
+      candidate = normalizedCandidate.value;
+      removedAdditionalPropertyPaths.push(...normalizedCandidate.removedAdditionalPropertyPaths);
+    }
+
     const ajv = new Ajv({
       allErrors: true,
       strict: false,
@@ -170,8 +245,10 @@ export class ValidationEngine {
         errors,
         normalizedCandidate: candidate
       },
-      normalizedSchema
+      normalizedSchema,
+      normalizationMeta: {
+        removedAdditionalPropertyPaths
+      }
     };
   }
 }
-

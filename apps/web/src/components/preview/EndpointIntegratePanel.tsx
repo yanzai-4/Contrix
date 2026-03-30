@@ -902,6 +902,7 @@ export function EndpointIntegratePanel({ endpoint, specCurrent, runtimePreflight
           >
             Code Example
           </button>
+          <span className="preview-tab-divider" aria-hidden="true" />
           <button
             type="button"
             className={`preview-tab-btn ${subview === 'shape' ? 'active' : ''}`}
@@ -911,6 +912,7 @@ export function EndpointIntegratePanel({ endpoint, specCurrent, runtimePreflight
           >
             Request / Response Shape
           </button>
+          <span className="preview-tab-divider" aria-hidden="true" />
           <button
             type="button"
             className={`preview-tab-btn ${subview === 'brief' ? 'active' : ''}`}

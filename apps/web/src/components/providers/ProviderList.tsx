@@ -167,7 +167,7 @@ export function ProviderList() {
   };
 
   return (
-    <section className="panel">
+    <section className="panel provider-list-panel">
       <div className="panel-header-row">
         <h2>{t('Provider List')}</h2>
         <button type="button" onClick={openCreateModal}>
@@ -188,7 +188,7 @@ export function ProviderList() {
         </div>
       ) : (
         <div className="table-wrap">
-          <table className="provider-table">
+          <table className="provider-table list-themed-table">
             <thead>
               <tr>
                 <th>{t('Nickname')}</th>

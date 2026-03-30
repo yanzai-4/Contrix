@@ -489,7 +489,7 @@ export class SpecService {
   }
 
   private buildSpecContent(source: SourceCollectionResult): EndpointSpecContent {
-    const outputAllowAdditional = source.outputSchema.allowAdditionalProperties ?? false;
+    const outputAllowAdditional = true;
     const outputIsTextMode = isTextModeOutputSchema(source.outputSchema);
     const hasStructuredOutputSchema = source.outputSchema.type === 'object' && !outputIsTextMode;
     const endpointInstruction = buildEndpointInstructionWithAutoJsonGuard(

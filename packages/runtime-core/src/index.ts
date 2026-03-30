@@ -45,7 +45,8 @@ export type RepairActionType =
   | 'extract_json_substring'
   | 'balance_brackets'
   | 'type_coercion'
-  | 'field_name_mapping';
+  | 'field_name_mapping'
+  | 'remove_additional_properties';
 export type StructuredOutputRequestMode = 'none' | 'json_object';
 export type CacheMetricsSource = 'official' | 'fallback' | 'none';
 

@@ -71,6 +71,13 @@ interface EndpointFormState {
   outputSchemaDraft: SchemaObjectNode;
 }
 
+function enforceOutputAllowAdditionalProperties(schema: SchemaObjectNode): SchemaObjectNode {
+  return {
+    ...schema,
+    allowAdditionalProperties: true
+  };
+}
+
 const initialState: EndpointFormState = {
   name: '',
   pathSlug: '',
@@ -96,7 +103,7 @@ const initialState: EndpointFormState = {
   outputTextDescription: '',
   outputTextExample: '',
   inputSchemaDraft: createEmptyObjectSchemaNode(),
-  outputSchemaDraft: createEmptyObjectSchemaNode()
+  outputSchemaDraft: enforceOutputAllowAdditionalProperties(createEmptyObjectSchemaNode())
 };
 
 function toFormState(endpoint: {
@@ -148,7 +155,7 @@ function toFormState(endpoint: {
 function buildTextOutputSchema(description: string, example: string): SchemaObjectNode {
   return {
     type: 'object',
-    allowAdditionalProperties: false,
+    allowAdditionalProperties: true,
     properties: [
       {
         key: 'text',
@@ -181,7 +188,7 @@ function buildInputSchemaForSave(formState: EndpointFormState): SchemaObjectNode
 
 function buildOutputSchemaForSave(formState: EndpointFormState): SchemaObjectNode {
   if (formState.outputMode === 'json') {
-    return formState.outputSchemaDraft;
+    return enforceOutputAllowAdditionalProperties(formState.outputSchemaDraft);
   }
 
   return buildTextOutputSchema(formState.outputTextDescription, formState.outputTextExample);
@@ -346,7 +353,7 @@ export function EndpointForm({ embedded = false, onSuccess, onRequestClose }: En
           inputSchemaDraft: inputIsJson ? inputSchema : createEmptyObjectSchemaNode(),
           inputTextDescription: !inputIsJson ? inputSchema?.description ?? '' : '',
           outputMode: outputIsTextMode ? 'text' : 'json',
-          outputSchemaDraft: outputSchema,
+          outputSchemaDraft: enforceOutputAllowAdditionalProperties(outputSchema),
           outputTextDescription: outputIsTextMode ? firstOutputProperty?.node.description ?? '' : '',
           outputTextExample:
             outputIsTextMode && typeof firstOutputProperty?.node.example === 'string'
@@ -990,7 +997,7 @@ export function EndpointForm({ embedded = false, onSuccess, onRequestClose }: En
                   node={formState.outputSchemaDraft}
                   onChange={(nextNode) => {
                     if (nextNode.type === 'object') {
-                      updateField('outputSchemaDraft', nextNode);
+                      updateField('outputSchemaDraft', enforceOutputAllowAdditionalProperties(nextNode));
                     }
                   }}
                   disableTypeChange
@@ -1042,7 +1049,7 @@ export function EndpointForm({ embedded = false, onSuccess, onRequestClose }: En
                   <label>
                     {t('Manual Fallback Content')}
                     <textarea
-                      className="endpoint-form-textarea"
+                      className="endpoint-form-textarea code-editor-textarea"
                       rows={5}
                       value={formState.fallbackManualContent}
                       onChange={(event) => updateField('fallbackManualContent', event.target.value)}
@@ -1071,16 +1078,8 @@ export function EndpointForm({ embedded = false, onSuccess, onRequestClose }: En
         <section className="schema-field-card">
           <details className="schema-advanced">
             <summary>{t('Repair Options')}</summary>
-            <div className="schema-grid two-col">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={formState.timeoutMode === 'inherit'}
-                  onChange={(event) => handleTimeoutModeChange(event.target.checked ? 'inherit' : 'custom')}
-                />
-                {t('Use provider default timeout')}
-              </label>
-              <label>
+            <div className="schema-grid two-col endpoint-repair-grid">
+              <label className="endpoint-repair-field">
                 <span className="label-with-help">
                   {t('Timeout (s) (Range: 1-120)')}
                   <button type="button" className="field-help-btn" onClick={() => setActiveHelpTopic('timeout')}>
@@ -1088,6 +1087,7 @@ export function EndpointForm({ embedded = false, onSuccess, onRequestClose }: En
                   </button>
                 </span>
                 <input
+                  className="endpoint-repair-number-input"
                   type="number"
                   min={1}
                   max={120}
@@ -1111,7 +1111,7 @@ export function EndpointForm({ embedded = false, onSuccess, onRequestClose }: En
                     : t('Using endpoint-specific timeout override.')}
                 </p>
               </label>
-              <label>
+              <label className="endpoint-repair-field">
                 <span className="label-with-help">
                   {t('API Retry Attempts (Range: 0-10)')}
                   <button type="button" className="field-help-btn" onClick={() => setActiveHelpTopic('apiRetry')}>
@@ -1119,6 +1119,7 @@ export function EndpointForm({ embedded = false, onSuccess, onRequestClose }: En
                   </button>
                 </span>
                 <input
+                  className="endpoint-repair-number-input"
                   type="number"
                   min={0}
                   max={10}
@@ -1137,7 +1138,15 @@ export function EndpointForm({ embedded = false, onSuccess, onRequestClose }: En
                   }
                 />
               </label>
-              <label className="checkbox-label">
+              <label className="checkbox-label endpoint-timeout-inherit-toggle endpoint-repair-toggle">
+                <input
+                  type="checkbox"
+                  checked={formState.timeoutMode === 'inherit'}
+                  onChange={(event) => handleTimeoutModeChange(event.target.checked ? 'inherit' : 'custom')}
+                />
+                {t('Use provider default timeout')}
+              </label>
+              <label className="checkbox-label endpoint-repair-deterministic-toggle endpoint-repair-toggle">
                 <input
                   type="checkbox"
                   checked={formState.enableDeterministicRepair}
@@ -1145,21 +1154,6 @@ export function EndpointForm({ embedded = false, onSuccess, onRequestClose }: En
                 />
                 {t('Enable deterministic repair')}
               </label>
-              {formState.outputMode === 'json' ? (
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(formState.outputSchemaDraft.allowAdditionalProperties)}
-                    onChange={(event) =>
-                      updateField('outputSchemaDraft', {
-                        ...formState.outputSchemaDraft,
-                        allowAdditionalProperties: event.target.checked
-                      })
-                    }
-                  />
-                  {t('Allow additional properties')}
-                </label>
-              ) : null}
             </div>
           </details>
         </section>
@@ -1176,9 +1170,6 @@ export function EndpointForm({ embedded = false, onSuccess, onRequestClose }: En
             {t('Cancel')}
           </button>
         </div>
-        <p className="meta-line">
-          {t('Save applies your changes and refreshes Preview and Test automatically.')}
-        </p>
       </form>
     </>
   );

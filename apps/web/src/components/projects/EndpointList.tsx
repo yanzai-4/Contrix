@@ -131,7 +131,7 @@ export function EndpointList({
         <p className="meta-line">{t('No endpoints yet. Add one to start building.')}</p>
       ) : (
         <div className="table-wrap endpoint-table-wrap">
-          <table className="project-table endpoint-table">
+          <table className="project-table endpoint-table list-themed-table">
             <thead>
               <tr>
                 <th>{t('Name')}</th>
@@ -190,8 +190,8 @@ export function EndpointList({
                           {t('Integrate')}
                         </button>
                         <details className="row-menu">
-                          <summary className="row-menu-trigger row-action-btn endpoint-action-btn endpoint-action-ghost">
-                            <span>{t('More')}</span>
+                          <summary className="row-menu-trigger endpoint-more-trigger row-action-btn endpoint-action-btn endpoint-action-ghost">
+                            <span className="endpoint-more-label">{t('More')}</span>
                             <span className="row-menu-caret" aria-hidden="true">
                               v
                             </span>

@@ -1,5 +1,6 @@
 import type {
   CreateProviderRequest,
+  ProviderConnectionTestResponse,
   ProviderHeaders,
   ProviderSummary,
   ProviderType,
@@ -17,6 +18,7 @@ export interface ProviderRecord {
   timeoutMs: number;
   headers: ProviderHeaders;
   notes: string | null;
+  lastConnectionTest: ProviderConnectionTestResponse | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -32,6 +34,7 @@ export interface ProviderInsertInput {
   timeoutMs: number;
   headers: ProviderHeaders;
   notes: string | null;
+  lastConnectionTest: ProviderConnectionTestResponse | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -47,6 +50,7 @@ export interface ProviderUpdateInput {
   timeoutMs: number;
   headers: ProviderHeaders;
   notes: string | null;
+  lastConnectionTest: ProviderConnectionTestResponse | null;
   updatedAt: string;
 }
 

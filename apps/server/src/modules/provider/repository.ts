@@ -1,4 +1,8 @@
-import type { ProviderHeaders, ProviderType } from '@contrix/spec-core';
+import type {
+  ProviderConnectionTestResponse,
+  ProviderHeaders,
+  ProviderType
+} from '@contrix/spec-core';
 import type { SQLiteDatabase } from '../../db/types.js';
 import type { ProviderInsertInput, ProviderRecord, ProviderUpdateInput } from './model.js';
 
@@ -13,6 +17,11 @@ interface ProviderTableRow {
   timeout_ms: number;
   headers_json: string;
   notes: string | null;
+  last_test_success: number | null;
+  last_test_message: string | null;
+  last_test_latency_ms: number | null;
+  last_test_status_code: number | null;
+  last_tested_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -37,6 +46,52 @@ function parseHeaders(headersJson: string): ProviderHeaders {
   }
 }
 
+function parseConnectionTest(row: ProviderTableRow): ProviderConnectionTestResponse | null {
+  if (
+    row.last_test_success === null ||
+    row.last_test_message === null ||
+    row.last_test_latency_ms === null ||
+    !row.last_tested_at
+  ) {
+    return null;
+  }
+
+  return {
+    success: row.last_test_success === 1,
+    message: row.last_test_message,
+    latencyMs: row.last_test_latency_ms,
+    providerId: row.id,
+    testedAt: row.last_tested_at,
+    statusCode: row.last_test_status_code ?? undefined
+  };
+}
+
+function toConnectionTestColumns(input: ProviderConnectionTestResponse | null): {
+  lastTestSuccess: number | null;
+  lastTestMessage: string | null;
+  lastTestLatencyMs: number | null;
+  lastTestStatusCode: number | null;
+  lastTestedAt: string | null;
+} {
+  if (!input) {
+    return {
+      lastTestSuccess: null,
+      lastTestMessage: null,
+      lastTestLatencyMs: null,
+      lastTestStatusCode: null,
+      lastTestedAt: null
+    };
+  }
+
+  return {
+    lastTestSuccess: input.success ? 1 : 0,
+    lastTestMessage: input.message,
+    lastTestLatencyMs: input.latencyMs,
+    lastTestStatusCode: input.statusCode ?? null,
+    lastTestedAt: input.testedAt
+  };
+}
+
 function mapRow(row: ProviderTableRow): ProviderRecord {
   return {
     id: row.id,
@@ -49,6 +104,7 @@ function mapRow(row: ProviderTableRow): ProviderRecord {
     timeoutMs: row.timeout_ms,
     headers: parseHeaders(row.headers_json),
     notes: row.notes,
+    lastConnectionTest: parseConnectionTest(row),
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -66,6 +122,11 @@ const PROVIDER_SELECT = `
     timeout_ms,
     headers_json,
     notes,
+    last_test_success,
+    last_test_message,
+    last_test_latency_ms,
+    last_test_status_code,
+    last_tested_at,
     created_at,
     updated_at
   FROM providers
@@ -96,6 +157,8 @@ export class ProviderRepository {
   }
 
   create(input: ProviderInsertInput): ProviderRecord {
+    const connectionTest = toConnectionTestColumns(input.lastConnectionTest);
+
     this.db
       .prepare(
         `
@@ -110,6 +173,11 @@ export class ProviderRepository {
             timeout_ms,
             headers_json,
             notes,
+            last_test_success,
+            last_test_message,
+            last_test_latency_ms,
+            last_test_status_code,
+            last_tested_at,
             created_at,
             updated_at
           ) VALUES (
@@ -123,6 +191,11 @@ export class ProviderRepository {
             @timeoutMs,
             @headersJson,
             @notes,
+            @lastTestSuccess,
+            @lastTestMessage,
+            @lastTestLatencyMs,
+            @lastTestStatusCode,
+            @lastTestedAt,
             @createdAt,
             @updatedAt
           )
@@ -139,6 +212,11 @@ export class ProviderRepository {
         timeoutMs: input.timeoutMs,
         headersJson: JSON.stringify(input.headers),
         notes: input.notes,
+        lastTestSuccess: connectionTest.lastTestSuccess,
+        lastTestMessage: connectionTest.lastTestMessage,
+        lastTestLatencyMs: connectionTest.lastTestLatencyMs,
+        lastTestStatusCode: connectionTest.lastTestStatusCode,
+        lastTestedAt: connectionTest.lastTestedAt,
         createdAt: input.createdAt,
         updatedAt: input.updatedAt
       });
@@ -153,6 +231,8 @@ export class ProviderRepository {
   }
 
   update(input: ProviderUpdateInput): ProviderRecord | null {
+    const connectionTest = toConnectionTestColumns(input.lastConnectionTest);
+
     const result = this.db
       .prepare(
         `
@@ -167,6 +247,11 @@ export class ProviderRepository {
             timeout_ms = @timeoutMs,
             headers_json = @headersJson,
             notes = @notes,
+            last_test_success = @lastTestSuccess,
+            last_test_message = @lastTestMessage,
+            last_test_latency_ms = @lastTestLatencyMs,
+            last_test_status_code = @lastTestStatusCode,
+            last_tested_at = @lastTestedAt,
             updated_at = @updatedAt
           WHERE id = @id
         `
@@ -182,6 +267,11 @@ export class ProviderRepository {
         timeoutMs: input.timeoutMs,
         headersJson: JSON.stringify(input.headers),
         notes: input.notes,
+        lastTestSuccess: connectionTest.lastTestSuccess,
+        lastTestMessage: connectionTest.lastTestMessage,
+        lastTestLatencyMs: connectionTest.lastTestLatencyMs,
+        lastTestStatusCode: connectionTest.lastTestStatusCode,
+        lastTestedAt: connectionTest.lastTestedAt,
         updatedAt: input.updatedAt
       });
 
@@ -190,6 +280,31 @@ export class ProviderRepository {
     }
 
     return this.findById(input.id);
+  }
+
+  saveConnectionTest(providerId: string, result: ProviderConnectionTestResponse): void {
+    const connectionTest = toConnectionTestColumns(result);
+    this.db
+      .prepare(
+        `
+          UPDATE providers
+          SET
+            last_test_success = @lastTestSuccess,
+            last_test_message = @lastTestMessage,
+            last_test_latency_ms = @lastTestLatencyMs,
+            last_test_status_code = @lastTestStatusCode,
+            last_tested_at = @lastTestedAt
+          WHERE id = @id
+        `
+      )
+      .run({
+        id: providerId,
+        lastTestSuccess: connectionTest.lastTestSuccess,
+        lastTestMessage: connectionTest.lastTestMessage,
+        lastTestLatencyMs: connectionTest.lastTestLatencyMs,
+        lastTestStatusCode: connectionTest.lastTestStatusCode,
+        lastTestedAt: connectionTest.lastTestedAt
+      });
   }
 
   deleteById(id: string): boolean {

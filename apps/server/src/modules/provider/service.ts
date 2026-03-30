@@ -16,7 +16,7 @@ import type {
 } from './model.js';
 import { ProviderRegistry } from './registry.js';
 import { ProviderRepository } from './repository.js';
-import { encryptApiKey } from './security.js';
+import { decryptApiKey, encryptApiKey } from './security.js';
 import { testProviderConnectivity } from './request-client.js';
 
 const DEFAULT_TIMEOUT_MS = 30000;
@@ -85,6 +85,19 @@ function isUniqueNameError(error: unknown): boolean {
   return message.includes('idx_providers_name_unique') || message.includes('providers.name');
 }
 
+function isApiKeyChanged(nextApiKey: string | null, existingEncryptedApiKey: string): boolean {
+  if (!nextApiKey) {
+    return false;
+  }
+
+  try {
+    const existingApiKey = decryptApiKey(existingEncryptedApiKey)?.trim() ?? '';
+    return existingApiKey !== nextApiKey;
+  } catch {
+    return true;
+  }
+}
+
 export class ProviderService {
   private readonly repository: ProviderRepository;
   private readonly registry: ProviderRegistry;
@@ -126,6 +139,7 @@ export class ProviderService {
         timeoutMs: normalized.timeoutMs,
         headers: normalized.headers,
         notes: normalized.notes,
+        lastConnectionTest: null,
         createdAt: now,
         updatedAt: now
       });
@@ -149,6 +163,7 @@ export class ProviderService {
     const apiKeyEncrypted = normalized.apiKey
       ? encryptApiKey(normalized.apiKey)
       : existing.apiKeyEncrypted;
+    const shouldResetConnectionTest = isApiKeyChanged(normalized.apiKey, existing.apiKeyEncrypted);
 
     const updated = this.repository.update({
       id,
@@ -161,6 +176,7 @@ export class ProviderService {
       timeoutMs: normalized.timeoutMs,
       headers: normalized.headers,
       notes: normalized.notes,
+      lastConnectionTest: shouldResetConnectionTest ? null : existing.lastConnectionTest,
       updatedAt: new Date().toISOString()
     });
 
@@ -198,8 +214,7 @@ export class ProviderService {
     }
 
     const baseUrl = resolveBaseUrl(provider.type, provider.baseUrl);
-
-    return testProviderConnectivity({
+    const result = await testProviderConnectivity({
       providerId: provider.providerKey,
       type: provider.type,
       baseUrl,
@@ -207,6 +222,8 @@ export class ProviderService {
       timeoutMs: provider.timeoutMs,
       headers: provider.headers
     });
+    this.repository.saveConnectionTest(provider.providerKey, result);
+    return result;
   }
 
   private requireExistingProvider(id: string): ProviderRecord {

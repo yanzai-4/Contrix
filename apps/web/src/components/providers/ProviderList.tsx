@@ -200,7 +200,7 @@ export function ProviderList() {
             </thead>
             <tbody>
               {providers.map((provider) => {
-                const testResult = testResultsById[provider.id];
+                const testResult = testResultsById[provider.id] ?? provider.lastConnectionTest ?? undefined;
                 const isTesting = Boolean(testingById[provider.id]);
                 const isDeleting = Boolean(deletingById[provider.id]);
                 const isEditing = editingProviderId === provider.id;

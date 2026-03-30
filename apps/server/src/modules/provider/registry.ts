@@ -50,6 +50,7 @@ export interface ProviderRegistryResolved {
   notes: string | null;
   hasApiKey: boolean;
   maskedApiKey: string;
+  lastConnectionTest: ProviderRecord['lastConnectionTest'];
   createdAt: string;
   updatedAt: string;
   runtimeApiKey: string | null;
@@ -93,6 +94,7 @@ function toSummary(record: ProviderRegistryResolved): ProviderSummary {
     notes: record.notes,
     maskedApiKey: record.maskedApiKey,
     hasApiKey: record.hasApiKey,
+    lastConnectionTest: record.lastConnectionTest,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt
   };
@@ -123,6 +125,7 @@ function fromDbRecord(row: ProviderRecord): ProviderRegistryResolved {
     notes: row.notes,
     hasApiKey: secret.hasApiKey,
     maskedApiKey: secret.maskedApiKey,
+    lastConnectionTest: row.lastConnectionTest,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     runtimeApiKey: decryptedApiKey

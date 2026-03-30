@@ -29,6 +29,7 @@ export interface ProviderSummary {
   notes: string | null;
   maskedApiKey: string;
   hasApiKey: boolean;
+  lastConnectionTest: ProviderConnectionTestResponse | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,13 +1,16 @@
 ![Contrix Hero](./docs/assets/contrix-hero.png)
 
 # Contrix
-**Contract-first local AI interface builder for model-backed APIs.**
+**Contract-first local LLM API builder for reliable structured JSON outputs.**
 
 > Stop writing fragile prompts.  
 > Start building contract-checked AI interfaces.
 
-Contrix helps AI engineers, backend/fullstack teams, and product builders define endpoint contracts, compile prompts from spec state, and run local runtime APIs with validation, repair, and observability.  
-It is designed for teams that need predictable integration behavior, not one-off prompt scripts.
+Contrix helps AI engineers, backend/fullstack teams, and product builders turn LLM calls into reliable local JSON APIs.
+
+Instead of hand-maintaining fragile prompts and output parsers, you define endpoint contracts through a GUI, generate spec-driven prompts, validate model outputs against schema rules, and automatically recover from failures with retry, timeout, fallback, and repair flows.
+
+It is built for teams that need structured outputs they can actually integrate into real software, not one-off prompt demos.
 
 [![Start Now](https://img.shields.io/badge/Start%20Now-Quick%20Start-15803d?style=for-the-badge)](#quick-start)
 [![Open Docs](https://img.shields.io/badge/Docs-Documentation-1d4ed8?style=for-the-badge)](./docs/README.md)
@@ -21,7 +24,9 @@ It is designed for teams that need predictable integration behavior, not one-off
 ---
 
 ## 1. What This Is
-Contrix is a contract-first local control layer for LLM integration. You define interface contracts (schemas + behavior rules), Contrix compiles runtime prompts and serves local endpoints that return validated, contract-checked outputs.
+Contrix is a contract-first local control layer for LLM integration. You define endpoint contracts with schemas, field-level requirements, and shared instructions, then Contrix generates spec-driven prompts and serves local runtime endpoints that return validated structured outputs.
+
+When supported by the provider, Contrix can use native structured outputs and JSON Schema-constrained output strategies directly. When outputs still fail, it can apply validation, repair, retry, timeout, and fallback handling before the result reaches your app.
 
 Why local matters:
 - Keep control of runtime behavior and provider configuration
@@ -31,12 +36,13 @@ Why local matters:
 ### Product Areas
 | Area | What it does |
 |---|---|
-| Contracts | Define per-endpoint input/output schemas and behavior rules. |
-| Prompt Compiler | Generates prompts from spec state with versioned traceability. |
-| Runtime | Exposes local API endpoints behind a consistent contract boundary. |
-| Validation | Checks model output against schema and captures failure context. |
-| Repair & Retry | Applies bounded repair/retry/fallback flows when output is invalid. |
-| Logs & Metrics | Records replay data, attempts, latency, and token/cache usage. |
+| Contract Builder | Define endpoint input/output schemas, field-level requirements, and shared instructions through a GUI. |
+| Spec & Prompt Compiler | Generates spec-driven prompts from endpoint configuration with traceable structure. |
+| Structured Output Runtime | Uses provider-native structured outputs when available, or falls back to validated JSON generation flows. |
+| Validation & Recovery | Checks JSON formatting, required fields, types, and non-empty expectations, then applies repair/retry/timeout/fallback logic when needed. |
+| Testing & Comparison | Run batch tests, compare prompts, and compare model versions against the same contract. |
+| Observability | Records latency, attempts, input/output tokens, cached tokens, and failure context. |
+| Integration | Exposes local runtime endpoints and generates integration examples for application code and AI-assisted coding workflows. |
 
 ---
 
@@ -56,7 +62,7 @@ Raw model API integration often fails under production constraints:
 Contrix adds a contract and validation layer between your app and model APIs.  
 Instead of trusting prompt text alone, you run requests through a spec-driven path with runtime checks, repair attempts, and traceable execution data.
 
-Result: more stable local Model APIs and lower integration risk as models/providers evolve.
+Result: more stable local LLM APIs and lower integration risk as models/providers evolve.
 
 ---
 
@@ -77,33 +83,39 @@ flowchart LR
 ---
 
 ## 5. Core Capabilities
-- Define per-endpoint input and output schemas
-- Configure behavior rules, examples, and constraints in one place
-- Compile endpoint specs into runtime prompts
-- Test calls locally before integrating them into your app
-- Inspect validation failures, repair attempts, latency, and token usage
+- Define JSON schema contracts through a graphical UI instead of hand-editing prompt text only
+- Add endpoint-level instructions, field-level requirements, and shared group instructions
+- Generate spec-driven prompts automatically from contract state
+- Use native structured outputs and JSON Schema-constrained output strategies when supported by the model provider
+- Validate returned JSON for formatting, required fields, types, and expected non-empty values
+- Recover from invalid outputs with repair, retry, timeout, and fallback flows
+- Tune runtime behavior with parameters such as temperature and top-p
+- Batch test prompts and compare different model versions against the same contract
+- Inspect latency, attempts, token usage, and cached token usage
+- Generate integration examples for app code and AI-assisted / vibe-coding workflows
 
 ---
 
 ## 6. Example Use Cases
-- Extract structured fields from contracts, resumes, support tickets, and listings
-- Build internal Model APIs that product/backend services can integrate safely
-- Normalize outputs across multiple Model API providers with one endpoint contract
-- Run batch regression checks for endpoint contracts before rollout
-- Compare model candidates on the same test inputs and acceptance criteria
-- Replace fragile prompt scripts with maintainable, versioned interface specs
+- Turn fragile LLM extraction prompts into reliable local JSON APIs
+- Enforce fixed response formats for AI features inside existing backend or full-stack apps
+- Build internal structured-output endpoints for documents, tickets, listings, resumes, and forms
+- Compare prompt variants or model versions before rollout
+- Add schema validation and recovery logic without building custom retry/repair pipelines from scratch
+- Generate integration snippets for application teams or for AI-assisted coding workflows that must return fixed JSON structures
 
 ---
 
 ## 7. Why Not Just Call a Model API Directly?
 | Direct model API calls | With Contrix |
 |---|---|
-| Prompt and parsing logic spread across codebases | Spec-driven contract is centralized and versioned |
-| Output shape can drift unexpectedly | Output is validated against endpoint schema |
-| Reliability logic is custom and duplicated | Validation/repair/retry/fallback path is standardized |
-| Model/provider switches require rework | Same endpoint contract supports controlled model/provider changes |
-| Hard to run fair model comparisons | Same contract + test inputs enables comparable evaluations |
-| Debugging needs scattered tooling | Local logs, replay, latency, and token/cache metrics are built in |
+| You ask for JSON and hope the output is usable | Output is validated against an endpoint contract before it reaches your app |
+| JSON mode may still fail schema expectations | Native structured outputs and JSON Schema-constrained strategies can be used when supported, with fallback validation/recovery paths |
+| Prompt logic and schema expectations are scattered across code | Contract, instructions, and field requirements are centralized in one place |
+| Retry, timeout, fallback, and repair must be hand-built | Reliability flows are built into the runtime path |
+| Hard to compare prompt versions and model versions fairly | Batch testing and side-by-side comparison are part of the workflow |
+| Limited visibility into token cost and cache effects | Token usage, cached tokens, latency, and attempts are tracked |
+| Integration requires custom wrapper code | Local runtime endpoints and generated example snippets speed up integration |
 
 ---
 
@@ -145,6 +157,16 @@ No GUI and no metrics dashboard; runs as an AI interface builder runtime only.
 ```bash
 pnpm start -- --silent
 ```
+
+### What success looks like
+After setup, you should be able to:
+- open the Web UI
+- create a provider
+- define an endpoint contract
+- run a test call
+- receive either validated JSON output or a structured fallback error
+
+Contrix is designed to make AI responses easier to integrate into real software, not just easier to demo.
 
 ---
 

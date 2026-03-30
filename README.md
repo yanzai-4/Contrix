@@ -42,7 +42,7 @@ Why local matters:
 | Validation & Recovery | Checks JSON formatting, required fields, types, and non-empty expectations, then applies repair/retry/timeout/fallback logic when needed. |
 | Testing & Comparison | Run batch tests, compare prompts, and compare model versions against the same contract. |
 | Observability | Records latency, attempts, input/output tokens, cached tokens, and failure context. |
-| Integration | Exposes local runtime endpoints and generates integration examples for application code and AI-assisted coding workflows. |
+| Integration | Exposes local runtime endpoints, generates integration code examples, and provides one-click copyable prompts for vibe-coding integration. |
 
 ---
 
@@ -92,7 +92,7 @@ flowchart LR
 - Tune runtime behavior with parameters such as temperature and top-p
 - Batch test prompts and compare different model versions against the same contract
 - Inspect latency, attempts, token usage, and cached token usage
-- Generate integration code examples and AI-ready integration prompts for real project wiring
+- Generate integration code examples and one-click copyable AI-ready prompts for vibe-coding endpoint wiring
 
 ---
 
@@ -115,7 +115,7 @@ flowchart LR
 | Retry, timeout, fallback, and repair must be hand-built | Reliability flows are built into the runtime path |
 | Hard to compare prompt versions and model versions fairly | Batch testing and side-by-side comparison are part of the workflow |
 | Limited visibility into token cost and cache effects | Token usage, cached tokens, latency, and attempts are tracked |
-| Integration requires custom wrapper code | Local runtime endpoints and generated example snippets speed up integration |
+| Integration requires custom wrapper code | Local runtime endpoints plus one-click copyable vibe-coding prompts speed up integration |
 
 ---
 
@@ -169,7 +169,7 @@ After setup, you should be able to:
 From there, Contrix helps you move from testing to integration by providing:
 - local runtime endpoints you can call from your project
 - generated code examples in common languages such as Python, Java, C++, JavaScript, and TypeScript
-- integration-oriented prompts for AI-assisted / vibe-coding workflows
+- one-click copyable prompts you can paste into AI-assisted / vibe-coding workflows to wire the endpoint quickly
 
 Expected result:
 - your app calls a local Contrix endpoint
@@ -177,7 +177,8 @@ Expected result:
 - or returns a structured fallback error when the contract cannot be satisfied
 
 ### Integration examples
-After validating an endpoint in the UI, open the Integrate panel to copy generated snippets or an AI-ready integration prompt, then wire the local runtime endpoint into your app.
+After validating an endpoint in the UI, open the Integrate panel and one-click copy an AI-ready vibe-coding integration prompt or code snippet, then wire the local runtime endpoint into your app.  
+Below is a concise Python example. For Java, C++, JavaScript, and TypeScript snippets, use the Integrate panel in the Web UI.
 
 Python:
 ```python
@@ -200,84 +201,6 @@ def run_endpoint(fieldName: str):
     except Exception as e:
         print(f"Request failed: {e}")
         return None
-```
-
-Java:
-```java
-// Requires Jackson
-JsonNode runEndpoint(String fieldName) throws Exception {
-  ObjectMapper mapper = new ObjectMapper();
-  ObjectNode payload = mapper.createObjectNode().put("field_name", fieldName);
-  HttpRequest req = HttpRequest.newBuilder(URI.create("http://localhost:4411/contrix/example/test"))
-      .header("Content-Type", "application/json")
-      .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
-      .build();
-  HttpResponse<String> res = HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString());
-  JsonNode data = mapper.readTree(res.body());
-  if (data.path("isError").asBoolean(false)) {
-    System.out.println(data.path("reason").asText("Unknown error"));
-    if (data.has("detail")) System.out.println(data.path("detail").asText(""));
-    return null;
-  }
-  return data;
-}
-```
-
-C++:
-```cpp
-// Requires cpr + nlohmann/json
-std::optional<nlohmann::json> runEndpoint(const std::string& fieldName) {
-  nlohmann::json payload = {{"field_name", fieldName}};
-  auto res = cpr::Post(cpr::Url{"http://localhost:4411/contrix/example/test"},
-                       cpr::Header{{"Content-Type", "application/json"}},
-                       cpr::Body{payload.dump()});
-  auto data = nlohmann::json::parse(res.text, nullptr, false);
-  if (data.is_discarded()) return std::nullopt;
-  if (data.value("isError", false)) {
-    std::cout << data.value("reason", "Unknown error") << std::endl;
-    if (data.contains("detail")) std::cout << data["detail"] << std::endl;
-    return std::nullopt;
-  }
-  return data;
-}
-```
-
-JavaScript:
-```javascript
-async function runEndpoint(fieldName) {
-  const response = await fetch("http://localhost:4411/contrix/example/test", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ field_name: fieldName })
-  });
-  const data = await response.json();
-  if (data.isError) {
-    console.error(data.reason ?? "Unknown error");
-    if (data.detail) console.error(data.detail);
-    return null;
-  }
-  return data;
-}
-```
-
-TypeScript:
-```typescript
-type EndpointError = { isError: true; reason?: string; detail?: string };
-
-async function runEndpoint(fieldName: string): Promise<Record<string, unknown> | null> {
-  const response = await fetch("http://localhost:4411/contrix/example/test", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ field_name: fieldName })
-  });
-  const data = (await response.json()) as Record<string, unknown> & Partial<EndpointError>;
-  if (data.isError === true) {
-    console.error(data.reason ?? "Unknown error");
-    if (data.detail) console.error(data.detail);
-    return null;
-  }
-  return data;
-}
 ```
 
 ---

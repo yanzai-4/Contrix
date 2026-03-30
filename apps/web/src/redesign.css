@@ -1291,15 +1291,15 @@ textarea {
   border: 1px dashed var(--border-mid);
   border-radius: 12px;
   background: var(--surface-subtle);
-  color: var(--text-body);
+  color: var(--brand-900) !important;
   box-shadow: none;
 }
 
 .empty-provider-cta:hover,
 .empty-provider-cta:focus-visible {
-  border-color: var(--border-strong);
-  background: #edf5ff;
-  color: var(--text-strong);
+  border-color: var(--border-strong) !important;
+  background: #edf5ff !important;
+  color: var(--brand-800) !important;
   box-shadow: none;
 }
 

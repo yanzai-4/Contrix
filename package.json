@@ -17,7 +17,7 @@
     "build:shared": "pnpm -r --filter ./packages/* build",
     "start:web": "pnpm --filter @contrix/web preview",
     "start:server": "pnpm --filter @contrix/server start",
-    "start": "node ./scripts/run-local.mjs start",
+    "start": "pnpm build:shared && node ./scripts/run-local.mjs dev",
     "dev:web": "pnpm build:shared && pnpm --filter @contrix/web dev",
     "dev:server": "pnpm build:shared && pnpm --filter @contrix/server dev",
     "dev:desktop": "pnpm build:shared && concurrently -n web,server,desktop -c green,cyan,yellow \"pnpm --filter @contrix/web dev\" \"pnpm --filter @contrix/server dev\" \"pnpm --filter @contrix/desktop dev\"",

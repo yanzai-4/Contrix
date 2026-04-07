@@ -2,8 +2,21 @@ import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:
 
 const ENCRYPTION_ALGORITHM = 'aes-256-gcm';
 const ENCRYPTION_SALT = 'contrix-provider-registry-salt';
-const SECRET_SOURCE = process.env.CONTRIX_PROVIDER_SECRET ?? 'contrix-local-provider-secret';
-const ENCRYPTION_KEY = scryptSync(SECRET_SOURCE, ENCRYPTION_SALT, 32);
+const PROVIDER_SECRET_ENV_KEY = 'CONTRIX_PROVIDER_SECRET';
+
+function resolveSecretSource(): string {
+  const secret = process.env[PROVIDER_SECRET_ENV_KEY]?.trim();
+  if (!secret) {
+    throw new Error(
+      `[provider-security] Missing required environment variable ${PROVIDER_SECRET_ENV_KEY}. ` +
+        'Set a strong secret before starting Contrix.'
+    );
+  }
+
+  return secret;
+}
+
+const ENCRYPTION_KEY = scryptSync(resolveSecretSource(), ENCRYPTION_SALT, 32);
 
 export function encryptApiKey(apiKey: string): string {
   const iv = randomBytes(12);

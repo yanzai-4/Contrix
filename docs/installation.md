@@ -45,8 +45,9 @@ Silent mode behavior:
 
 Important: Silent mode is startup-only. You cannot toggle it while process is running.
 
-## Optional Provider Secret
-Provider keys are encrypted at rest. You can set your own encryption secret:
+## Required Provider Secret
+Provider keys are encrypted at rest. `CONTRIX_PROVIDER_SECRET` is required at startup.
+If this variable is missing or empty, server startup fails fast.
 
 PowerShell:
 ```powershell
@@ -57,3 +58,15 @@ Bash:
 ```bash
 export CONTRIX_PROVIDER_SECRET="replace-with-your-local-secret"
 ```
+
+## CORS Security Defaults
+By default, Contrix allows browser origins from local hosts only:
+- `http://localhost:*`
+- `http://127.0.0.1:*`
+- `http://[::1]:*`
+
+No `Origin` requests (for example CLI tools) are allowed by default.
+
+You can override CORS behavior with:
+- `CONTRIX_CORS_MODE=allow-all`
+- `CONTRIX_CORS_MODE=allowlist` and `CONTRIX_CORS_ALLOWLIST=https://your-ui.example.com,https://admin.example.com`

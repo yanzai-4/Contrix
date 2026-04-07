@@ -25,8 +25,9 @@ Each provider record defines:
 - List views show masked keys only.
 - Runtime decrypts keys only when sending provider requests.
 - Export artifacts do **not** include provider secrets.
+- `CONTRIX_PROVIDER_SECRET` is required. Server startup fails if it is missing.
 
-You can override encryption secret via `CONTRIX_PROVIDER_SECRET`.
+Migration note: after upgrading to this security model, set `CONTRIX_PROVIDER_SECRET` before launching Contrix.
 
 ## Connection Test
 Use `Test Connection` per provider to validate:

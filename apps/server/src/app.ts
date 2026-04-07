@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import { PROMPT_COMPILER_VERSION } from '@contrix/prompt-compiler';
 import { createRuntimePlaceholder } from '@contrix/runtime-core';
 import type { SpecVersion } from '@contrix/spec-core';
+import { buildCorsOptions } from './config/cors.js';
 import { isSilentModeEnabled } from './config/silent-mode.js';
 import databasePlugin from './plugins/database.js';
 import endpointRoutes from './modules/endpoint/routes.js';
@@ -31,9 +32,7 @@ export async function buildApp(options: BuildAppOptions = {}) {
     logger: silentMode ? { level: 'error' } : true
   });
 
-  await app.register(cors, {
-    origin: true
-  });
+  await app.register(cors, buildCorsOptions());
 
   app.log.info(
     {

@@ -35,6 +35,8 @@ interface RuntimeRoutesOptions {
   activeRuntimeSnapshot?: RuntimeSettingsResponse;
 }
 
+const SENSITIVE_DEBUG_KEY_PATTERN = /(authorization|api[-_]?key|token|secret|password)/i;
+
 function normalizeRoutePrefix(routePrefix: string | undefined): string {
   const raw = routePrefix?.trim() || '/runtime';
   const withLeading = raw.startsWith('/') ? raw : `/${raw}`;
@@ -45,6 +47,30 @@ function normalizeRoutePrefix(routePrefix: string | undefined): string {
   }
 
   return normalized || '/runtime';
+}
+
+function redactDebugPayload(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => redactDebugPayload(item));
+  }
+
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+
+  const source = value as Record<string, unknown>;
+  const redacted: Record<string, unknown> = {};
+
+  for (const [key, item] of Object.entries(source)) {
+    if (SENSITIVE_DEBUG_KEY_PATTERN.test(key)) {
+      redacted[key] = '****';
+      continue;
+    }
+
+    redacted[key] = redactDebugPayload(item);
+  }
+
+  return redacted;
 }
 
 function getRuntimeService(app: FastifyInstance, runtimeSettingsService: RuntimeSettingsService): RuntimeService {
@@ -160,7 +186,7 @@ const runtimeRoutes: FastifyPluginAsync<RuntimeRoutesOptions> = async (app, opti
         requestId: request.id,
         params: request.params,
         query: request.query,
-        body: request.body
+        body: redactDebugPayload(request.body)
       },
       'Runtime debug trace'
     );
